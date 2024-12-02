@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar un Libro{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Agregar un Libro</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="titulo">Título:</label>
+                {{ form.titulo }}
+            </div>
+            <div class="form-group">
+                <label for="autor">Autor:</label>
+                {{ form.autor }}
+            </div>
+            <div class="form-group">
+                <label for="opinion">Opinión:</label>
+                {{ form.opinion }}
+            </div>
+            <div class="form-group">
+                <label for="tag">Etiqueta(s):</label>
+                {{ form.tag }}
+            </div>
+            <div class="form-group">
+                <label for="puntuacion">Puntuación (1-5):</label>
+                {{ form.puntuacion }}
+            </div>
+            <div class="form-group">
+                <label for="foto_url">URL de la Foto (opcional):</label>
+                {{ form.foto_url }}
+                <p class="optional-field">Deja este campo vacío si no tienes una URL para la foto.</p>
+            </div>
+            <div class="form-group">
+                <label for="fecha_termino">Fecha de Terminación:</label>
+                {{ form.fecha_termino }}
+            </div>
+            <!-- Campo oculto para la fecha agregada -->
+            {{ form.fecha_agregada }}
+            <button type="submit">Guardar</button>
+        </form>
+        <a href="{% url 'libro_list' %}" class="link-btn">Volver a la lista de libros</a>
+    </div>
+{% endblock %}

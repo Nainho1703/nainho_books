@@ -1,0 +1,6 @@
+{% if user.is_authenticated %}
+  <h2>Bienvenido, {{ user.username }}!</h2>
+  <p>Estás autenticado correctamente.</p>
+{% else %}
+  <p>No has iniciado sesión.</p>
+{% endif %}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mi Sitio{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.0">
+
+</head>
+<body>
+    <header class="header">
+        <h1><a href="{% url 'libro_list' %}">Mi Biblioteca</a></h1>
+        <div>
+            {% if user.is_authenticated %}
+                <span>Bienvenido, {{ user.username }}</span>
+                <a href="{% url 'logout' %}" style="margin-left: 10px; color: red;">Cerrar sesión</a>
+            {% else %}
+                <a href="{% url 'login' %}" style="color: green;">Iniciar sesión</a>
+            {% endif %}
+        </div>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

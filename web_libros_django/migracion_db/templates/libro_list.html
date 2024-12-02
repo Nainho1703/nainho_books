@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Libros{% endblock %}
+
+{% block content %}
+
+    <!-- Buscador en la parte superior, al lado de ordenar por -->
+
+
+    <a href="{% url 'agregar_libro' %}" class="link-btn">Agregar un nuevo libro</a>
+    <div id="search-form">
+        <form method="GET">
+            <!-- Ordenar por -->
+            <select name="ordenar_por" onchange="this.form.submit()">
+                <option value="">Ordenar por</option>
+                <option value="puntuacion" {% if ordenar_por == 'puntuacion' %}selected{% endif %}>Puntuación</option>
+                <option value="fecha_termino" {% if ordenar_por == 'fecha_termino' %}selected{% endif %}>Fecha de Término</option>
+            </select>
+            
+            <!-- Campo de búsqueda (vacío por defecto) -->
+            <input type="text" name="busqueda" value="{{ busqueda | default:'' }}" placeholder="Buscar por título, autor, tag, etc." />
+
+            <!-- Botón de búsqueda -->
+            <button type="submit" name="accion" value="buscar">Buscar</button>
+        </form>
+    </div>
+
+    <!-- Contenedor para filtros y libros -->
+    <div class="container">
+        <!-- Filtros a la izquierda -->
+        <div class="filters">
+            <h2>Filtros</h2>
+            <form method="GET">
+                <!-- Filtro por puntuación -->
+                <label for="puntuacion_min">Puntuación Mínima</label>
+                <input type="number" name="puntuacion_min" min="0" max="5" step="0.1" value="{{ puntuacion_min }}" />
+
+                <label for="puntuacion_max">Puntuación Máxima</label>
+                <input type="number" name="puntuacion_max" min="0" max="5" step="0.1" value="{{ puntuacion_max }}" />
+
+                <!-- Filtro por año -->
+                <select name="año">
+                    <option value="">Seleccionar Año</option>
+                    {% for año in años %}
+                        <option value="{{ año }}" {% if año == año %}selected{% endif %}>{{ año }}</option>
+                    {% endfor %}
+                </select>
+                
+                <!-- Filtro de Mes -->
+                <select name="mes">
+                    <option value="">Seleccionar Mes</option>
+                    {% for mes in meses %}
+                        <option value="{{ mes }}" {% if mes == mes %}selected{% endif %}>{{ mes }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Ordenar por -->
+                <label for="ordenar_por">Ordenar por</label>
+                <select name="ordenar_por" onchange="this.form.submit()">
+                    <option value="">Seleccionar opción</option>
+                    <option value="puntuacion" {% if ordenar_por == 'puntuacion' %}selected{% endif %}>Puntuación</option>
+                    <option value="fecha_termino" {% if ordenar_por == 'fecha_termino' %}selected{% endif %}>Fecha de Término</option>
+                </select>
+
+                <button type="submit" name="accion" value="aplicar_filtros">Aplicar Filtros</button>
+            </form>
+            <p class="contador-libros">Total de {{ total_libros }} libros.</p>
+        </div>
+
+        <!-- Listado de libros -->
+ 
+        <div class="book-list">
+            {% for libro in libros %}
+                <div class="book-card">
+                    <a href="javascript:void(0);" onclick="alert('{{ libro.opinion }}')">
+                        <img src="{{ libro.foto_url }}" alt="Foto de {{ libro.titulo }}" />
+                    </a>
+                    <h3>{{ libro.titulo }}</h3>
+                    <p class="rating">Puntuación: {{ libro.puntuacion }}</p>
+                    <p>{{ libro.fecha_termino|date:"Y-m-d" }}</p>
+        
+                    <!-- Botones de acción -->
+                    <div class="action-buttons">
+                        <a href="{% url 'libro_editar' libro.id %}" class="btn btn-edit">Editar</a>
+                        <form method="POST" action="{% url 'libro_list' %}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="checkbox" name="eliminar_ids" value="{{ libro.id }}" />
+                            <button type="submit" name="eliminar_libros" class="btn btn-delete">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+
+
+    <script>
+        // Función para manejar la confirmación de eliminación
+        function confirmDelete() {
+            const selectedBooks = getSelectedBooks();
+            if (selectedBooks.length === 0) {
+                alert('No has seleccionado ningún libro para eliminar.');
+                return;
+            }
+
+            document.getElementById('confirm-message').style.display = 'block';
+        }
+
+        // Función para obtener los libros seleccionados
+        function getSelectedBooks() {
+            const checkboxes = document.querySelectorAll('.book-card input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(checkbox => checkbox.value);
+        }
+
+        // Función para ejecutar la eliminación
+        function confirmDeleteAction() {
+            const selectedBooks = getSelectedBooks();
+            document.getElementById('delete-ids').value = selectedBooks.join(',');
+            document.getElementById('delete-form').submit();
+        }
+
+        // Función para cancelar la eliminación
+        function cancelDelete() {
+            document.getElementById('confirm-message').style.display = 'none';
+        }
+    </script>
+
+{% endblock %}
+
+

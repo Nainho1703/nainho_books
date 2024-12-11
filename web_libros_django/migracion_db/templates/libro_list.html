@@ -82,29 +82,49 @@
                     <!-- Botones de acción -->
                     <div class="action-buttons">
                         <a href="{% url 'libro_editar' libro.id %}" class="btn btn-edit">Editar</a>
-                        <form method="POST" action="{% url 'libro_list' %}" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="checkbox" name="eliminar_ids" value="{{ libro.id }}" />
-                            <button type="submit" name="eliminar_libros" class="btn btn-delete">Eliminar</button>
-                        </form>
+
+                        <button class="btn btn-delete" onclick="eliminarLibro({{ libro.id }})">Eliminar</button>
                     </div>
                 </div>
             {% endfor %}
         </div>
 
-
-
+        <script>
+            function eliminarLibro(libroId) {
+                if (!confirm("¿Estás seguro de que quieres eliminar este libro?")) {
+                    return;
+                }
+            
+                fetch("{% url 'libro_list' %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ eliminar_id: libroId })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById(`book-${libroId}`).remove();
+                        alert("Libro eliminado correctamente.");
+                    } else {
+                        alert("Hubo un problema al eliminar el libro.");
+                    }
+                })
+                .catch(error => console.error("Error:", error));
+            }
+            </script>
     <script>
         // Función para manejar la confirmación de eliminación
-        function confirmDelete() {
-            const selectedBooks = getSelectedBooks();
-            if (selectedBooks.length === 0) {
-                alert('No has seleccionado ningún libro para eliminar.');
-                return;
-            }
+        // function confirmDelete() {
+        //     const selectedBooks = getSelectedBooks();
+        //     if (selectedBooks.length === 0) {
+        //         alert('No has seleccionado ningún libro para eliminar.');
+        //         return;
+        //     }
 
-            document.getElementById('confirm-message').style.display = 'block';
-        }
+        //     document.getElementById('confirm-message').style.display = 'block';
+        // }
 
         // Función para obtener los libros seleccionados
         function getSelectedBooks() {

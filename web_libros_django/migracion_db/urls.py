@@ -13,6 +13,8 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register, name='register'),
+    path('obtener_informacion_libro/', views.obtener_informacion_libro, name='obtener_informacion_libro'),
+
     path('home/', views.home, name='home'),  # Asegúrate de tener una página de inicio
 
 

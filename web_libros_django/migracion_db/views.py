@@ -8,33 +8,35 @@ from django.db.models import Q  # Importar Q para condiciones OR
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
-# @login_required
+from django.shortcuts import render, redirect
+from .forms import LibroForm
 
-# def agregar_libro(request):
-#     if request.method == 'POST':
-#         form = LibroForm(request.POST)
-#         if form.is_valid():
-#             libro = form.save(commit=False)  # No guardar aún
-#             libro.fecha_termino = date.today()  # Establecer la fecha actual
-#             libro.save()  # Guardar con la fecha de hoy
-#             return redirect('libro_list')  # Redirigir a la lista de libros
-#     else:
-#         form = LibroForm()
-#     return render(request, 'agregar_libro.html', {'form': form})
-
-
+from datetime import date
+from .utils import obtener_info  # Importamos la función que hace el scraping
 @login_required
 def agregar_libro(request):
     if request.method == 'POST':
         form = LibroForm(request.POST)
         if form.is_valid():
             libro = form.save(commit=False)
-            libro.user = request.user  # Asociar el libro al usuario autenticado
-            libro.fecha_termino = date.today()  # Fecha actual como ejemplo
+            
+            # Si la URL es válida, completamos los campos bloqueados
+            url_libro = form.cleaned_data.get('url_libro')
+            if url_libro:
+                if 'casadellibro.com' in url_libro or 'goodreads.com' in url_libro:
+                    title, autor, imagen = obtener_info(url_libro)
+                    libro.titulo = title if title else libro.titulo
+                    libro.autor = autor if autor else libro.autor
+                    libro.foto_url = imagen if imagen else libro.foto_url
+
+            # Asignar el usuario y fecha
+            libro.user = request.user
+            libro.fecha_termino = date.today()  # Puedes cambiar esto según tu lógica
             libro.save()
             return redirect('libro_list')
     else:
         form = LibroForm()
+
     return render(request, 'agregar_libro.html', {'form': form})
 
 @login_required
@@ -135,7 +137,14 @@ def libro_list(request):
     año = request.GET.get('año', '')  
     mes = request.GET.get('mes', '')  
     busqueda = request.GET.get('busqueda', '')
-
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        eliminar_id = data.get('eliminar_id')
+        if eliminar_id:
+            Libro.objects.filter(id=eliminar_id, user=request.user).delete()
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'message': 'ID no válido'}, status=400)
     if año:
         try:
             año = int(año)
@@ -163,6 +172,7 @@ def libro_list(request):
         'libros': libros_filtrados,
         'total_libros': total_libros,
     })
+
 
 
 from django.contrib import messages
@@ -250,4 +260,35 @@ def logout_view(request):
     logout(request)  # Cierra la sesión del usuario
     return redirect('login')  # Redirige al usuario a la página de login (o donde prefieras)
 
-                  
+
+
+from django.http import JsonResponse
+from .utils import obtener_info
+
+
+def obtener_informacion_libro(request):
+    if request.method == 'POST':
+        url = request.POST.get('url')
+        
+        if url:
+            title, author, image = obtener_info(url)
+
+            if title and author and image:
+                return JsonResponse({
+                    'success': True,
+                    'title': title,
+                    'author': author,
+                    'image': image
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No se pudo obtener la información del libro.'
+                })
+        
+        return JsonResponse({
+            'success': False,
+            'message': 'URL inválida o no proporcionada.'
+        })
+
+    return JsonResponse({'success': False, 'message': 'Método no permitido.'})

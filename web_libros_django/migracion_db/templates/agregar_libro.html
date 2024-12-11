@@ -4,9 +4,15 @@
 
 {% block content %}
     <div class="container">
-        <h1>Agregar un Libro</h1>
-        <form method="POST">
+        <!-- <h1>Agregar un Libro</h1> -->
+        <form method="POST" class="form-container">
             {% csrf_token %}
+            <!-- Nuevo campo para la URL del libro -->
+            <div class="form-group">
+                <label for="libro_url">URL del Libro:</label>
+                <input type="text" id="libro_url" class="form-control" placeholder="Ingrese la URL del libro">
+                <button type="button" id="buscar_libro" class="btn btn-primary">Buscar</button>
+            </div>
             <div class="form-group">
                 <label for="titulo">Título:</label>
                 {{ form.titulo }}
@@ -27,19 +33,111 @@
                 <label for="puntuacion">Puntuación (1-5):</label>
                 {{ form.puntuacion }}
             </div>
-            <div class="form-group">
-                <label for="foto_url">URL de la Foto (opcional):</label>
-                {{ form.foto_url }}
-                <p class="optional-field">Deja este campo vacío si no tienes una URL para la foto.</p>
-            </div>
+            <!-- <div class="form-group">
+                <label for="foto_url">URL de la Foto (opcional):</label> -->
+                
+                <!-- <p class="optional-field">Deja este campo vacío si no tienes una URL para la foto.</p>
+            </div> -->
             <div class="form-group">
                 <label for="fecha_termino">Fecha de Terminación:</label>
                 {{ form.fecha_termino }}
             </div>
             <!-- Campo oculto para la fecha agregada -->
             {{ form.fecha_agregada }}
+            <!-- Campo oculto para la fecha agregada -->
+            {{ form.foto_url }}
+
+
+
             <button type="submit">Guardar</button>
         </form>
+
+        <!-- Cuadro para mostrar la imagen -->
+        <div id="imagen_libro" class="imagen-libro">
+            <img id="imagen_libro_url" src="" alt="Imagen del libro" style="display: none;">
+        </div>
+
         <a href="{% url 'libro_list' %}" class="link-btn">Volver a la lista de libros</a>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.getElementById('buscar_libro').addEventListener('click', function() {
+            var libroUrl = document.getElementById('libro_url').value;
+            
+            if (libroUrl && libroUrl.includes('casadellibro.com') || libroUrl.includes('goodreads.com')) {
+                $.ajax({
+                    url: '/migracion_db/obtener_informacion_libro/',  // URL con el prefijo adecuado
+                    method: 'POST',
+                    data: {
+                        'url': libroUrl,
+                        'csrfmiddlewaretoken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            document.getElementById('id_titulo').value = response.title;
+                            document.getElementById('id_autor').value = response.author;
+                            document.getElementById('id_foto_url').value = response.image;
+
+                            // Mostrar la imagen
+                            var imagen = document.getElementById('imagen_libro_url');
+                            imagen.src = response.image;
+                            imagen.style.display = 'block'; // Mostrar la imagen
+                        } else {
+                            alert("No se pudo obtener la información del libro.");
+                        }
+                    },
+                    error: function() {
+                        alert("Hubo un error al intentar obtener la información.");
+                    }
+                });
+            } else {
+                alert("Por favor, ingresa una URL válida de Casa del Libro o Goodreads.");
+            }
+        });
+    </script>
+
+    <style>
+        .container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .form-container {
+            width: 60%; /* Ajusta el tamaño del formulario */
+        }
+
+        .imagen-libro {
+            width: 35%; /* Ajusta el tamaño de la imagen */
+            height: 500px; /* Ajusta la altura de la imagen */
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .imagen-libro img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .link-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .link-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 {% endblock %}

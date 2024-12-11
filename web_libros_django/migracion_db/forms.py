@@ -1,29 +1,34 @@
 from django import forms
 from .models import Libro
-from datetime import date  # Importa la clase date
+from datetime import date
 
 class LibroForm(forms.ModelForm):
+    # Bloquear los campos de título, autor y foto_url
+    titulo = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    autor = forms.CharField(widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    foto_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'readonly': 'readonly'}))
+
+    # Nuevo campo para la URL que el usuario introducirá
+    url_libro = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'Introduce la URL del libro'}))
+
     class Meta:
         model = Libro
-        fields = ['titulo', 'autor', 'opinion', 'tag', 'puntuacion', 'foto_url', 'fecha_termino', 'fecha_agregada']
+        fields = ['titulo', 'autor', 'opinion', 'tag', 'puntuacion', 'foto_url', 'fecha_termino', 'fecha_agregada', 'url_libro']
     
     # Campo de fecha de término con selector de fecha
     fecha_termino = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}), 
-        required=False  # Si quieres que sea opcional
+        required=False
     )
     
     # Campo de fecha agregada con la fecha de hoy por defecto
     fecha_agregada = forms.DateField(
-        widget=forms.HiddenInput(),  # Oculto en el formulario, pero se envía
-        initial=date.today  # Establece la fecha actual
+        widget=forms.HiddenInput(),  
+        initial=date.today
     )
 
-    # Cambiar el campo 'descripcion' a 'opinion'
+    # Campo de opinión
     opinion = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Escribe tu opinión sobre el libro'}))
-
-    # Campo opcional para la URL de la foto
-    foto_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'placeholder': 'URL de la foto'}))
 
 from django.contrib.auth.models import User
 
